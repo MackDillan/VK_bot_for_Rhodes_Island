@@ -1,5 +1,5 @@
 from vk_api.longpoll import VkLongPoll, VkEventType
-import requests
+#import requests
 import vk_api
 import random
 import time
