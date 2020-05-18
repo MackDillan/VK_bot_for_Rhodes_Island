@@ -29,7 +29,19 @@ class Amiya_bot():
         try:
             for event in self.longpoll.listen():
                 if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
-                    if event.text == 'Амия, калькулятор':
+                    if event.text == 'Амия!':
+                        self.send_msg(event, event.user_id,
+                                      'Я тут дуктор.')
+
+                    if event.text == 'Амия, возможности':
+                        self.send_msg(event, event.user_id,
+                                    '1. Амия, калькулятор\n\
+                                    2. Добавь ссылку описание полная ссылка\n\
+                                    3. Дай архив\n\
+                                    4. Обнови запись в архиве номер {нормер} описание {описание} ссылка {ссыла}\n\
+                                          ')
+
+                    elif event.text == 'Амия, калькулятор':
                         self.send_msg(event,event.user_id,
                                 'Доктор, держи\nhttps://aceship.github.io/AN-EN-Tags/aklevel.html')
 
