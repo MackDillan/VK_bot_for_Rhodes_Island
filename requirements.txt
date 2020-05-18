@@ -1,2 +1,2 @@
-requests
-vk_api
+requests==2.23.0
+vk_api==11.8.0
