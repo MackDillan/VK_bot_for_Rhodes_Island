@@ -5,13 +5,21 @@ import random
 import time
 from codecs import open
 class Amiya_bot():
-        
     def __init__(self):
         self.vk_session = vk_api.VkApi(
             token='32319c102c6f7a48f705c4697eb8c886ce62986248f5a15eb9c702a742296a7cedbcb7c53327860707d68')
 
         self.longpoll = VkLongPoll(self.vk_session)
         self.vk = self.vk_session.get_api()
+        self.cmds = {
+            'Амия!': self.hallo,
+            'Амия, возможности': self.opportunity,
+            'Амия, калькулятор': self.calc,
+            'Добавь ссылку': self.add_link,
+            'Дай архив': self.get_archive,
+            'Обнови запись номер ': self.update_line,
+            'Удали запись номер ': self.del_line,
+        }
 
     def get_id_for_msg(self):
         return random.randint(1000000, 9999999)
@@ -25,91 +33,125 @@ class Amiya_bot():
                 random_id=random_id
             )
 
+    def hallo(self, event):
+        self.send_msg(event, event.user_id,
+                    'Я тут дуктор.')
+
+    def opportunity(self, event):
+        self.send_msg(event, event.user_id,
+                    '1. Амия, калькулятор\n\
+                     2. Добавь ссылку описание полная ссылка\n\
+                     3. Дай архив\n\
+                     4. Обнови запись номер {номер} описание {описание} ссылка {ссылка}\n\
+                     5. Удали запись номер {номер}\n\
+                    ')
+
+    def calc(self, event):
+        self.send_msg(event, event.user_id,
+                    'Доктор, держи\nhttps://aceship.github.io/AN-EN-Tags/aklevel.html')
+
+    def add_link(self, event):
+        text = event.text.split('ссылку')[1]
+        text = text.split('http')
+        url = 'http'+text[1]
+        try:
+            out = open('urls.txt', 'ab', 'utf-8')
+
+        except FileNotFoundError:
+            out = open('urls.txt', 'wb', 'utf-8')
+
+        out.write('{0}   {1}\n'.format(text[0], url))
+        out.close()
+
+        self.send_msg(event, event.user_id,
+            "Доктор, я добавила ссылку в архив.")
+
+    def get_archive(self, event):
+        data = str()
+
+        try:
+            with open('urls.txt', 'r', encoding="utf-8") as fl:
+                itr = 1
+                for line in fl:
+                    data += "{0} {1} \n".format(itr, line)
+                    itr += 1
+
+        except FileNotFoundError:
+            pass
+
+        if not data:
+            data = 'База пуста'
+
+        self.send_msg(event, event.user_id, data)
+
+    def update_line(self, event):
+        data = list()
+        try:
+            with open('urls.txt', 'rb', encoding="utf-8") as fl:
+                for line in fl:
+                    data.append(line)
+
+            text = event.text
+            text_split = text[len(
+                'Обнови запись номер '):][0]
+
+            nmbr = int(text_split[0])
+
+            text_split = text[text.find(' описание '):].replace(
+                ' описание ', '').replace(' ссылка', '').split(' ', 1)
+
+            data[nmbr-1] = '{0}   {1}\n'.format(
+                text_split[0], text_split[1])
+            out = open('urls.txt', 'wb', 'utf-8')
+
+            for i in data:
+                out.write(i)
+            out.close()
+
+        except FileNotFoundError:
+            pass
+
+        if not data:
+            data = 'База пуста'
+
+        self.send_msg(event, event.user_id, 'Архив обновлён')
+
+    def del_line(self, event):
+        data = list()
+        try:
+            with open('urls.txt', 'rb', encoding="utf-8") as fl:
+                for line in fl:
+                    data.append(line)
+
+            text = event.text
+
+            text_split = text[len(
+                'Удали запись номер '):]
+
+            nmbr = int(text_split)-1
+
+            data.remove(data[nmbr])
+            out = open('urls.txt', 'wb', 'utf-8')
+
+            for i in data:
+                out.write(i)
+            out.close()
+
+        except FileNotFoundError:
+            pass
+
+        if not data:
+            data = 'База пуста'
+
+        self.send_msg(event, event.user_id, 'Архив обновлён')
+
     def main(self):
         try:
             for event in self.longpoll.listen():
                 if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
-                    if event.text == 'Амия!':
-                        self.send_msg(event, event.user_id,
-                                      'Я тут дуктор.')
-
-                    if event.text == 'Амия, возможности':
-                        self.send_msg(event, event.user_id,
-                                    '1. Амия, калькулятор\n\
-                                    2. Добавь ссылку описание полная ссылка\n\
-                                    3. Дай архив\n\
-                                    4. Обнови запись в архиве номер {нормер} описание {описание} ссылка {ссыла}\n\
-                                          ')
-
-                    elif event.text == 'Амия, калькулятор':
-                        self.send_msg(event,event.user_id,
-                                'Доктор, держи\nhttps://aceship.github.io/AN-EN-Tags/aklevel.html')
-
-                    elif event.text.startswith('Добавь ссылку'):
-                        text = event.text.split('ссылку')[1]
-                        text = text.split('http')
-                        url = 'http'+text[1]
-                        try:
-                            out = open('urls.txt', 'ab', 'utf-8')
-
-                        except FileNotFoundError:
-                            out = open('urls.txt', 'wb', 'utf-8')
-
-                        out.write('{0}   {1}\n'.format(text[0], url))
-                        out.close()
-
-                        self.send_msg(event,event.user_id,
-                                "Доктор, я добавила ссылку в архив.")
-            
-                    elif event.text.startswith('Дай архив'):
-                        data = str()
-
-                        try:
-                            with open('urls.txt', 'r', encoding="utf-8") as fl:
-                                itr = 1
-                                for line in fl:
-                                    data += "{0} {1} \n".format(itr, line)
-                                    itr += 1
-
-                        except FileNotFoundError:
-                            pass
-
-                        if not data:
-                            data = 'База пуста'
-
-                        self.send_msg(event,event.user_id, data)
-
-                    elif event.text.startswith('Обнови запись в архиве номер '):
-                        data = list()
-                        try:
-                            with open('urls.txt', 'rb', encoding="utf-8") as fl:
-                                for line in fl:
-                                    data.append(line)
-                                    
-                            text = event.text
-                            text_split = text[len(
-                                'Обнови запись в архиве номер '):][0]
-
-                            nmbr = int(text_split[0])
-                            
-                            text_split = text[text.find(' описание '):].replace(
-                                ' описание ', '').replace(' ссылка', '').split(' ', 1)
-
-                            data[nmbr-1] = '{0}   {1}\n'.format(text_split[0], text_split[1])
-                            out = open('urls.txt', 'wb', 'utf-8')
-
-                            for i in data:
-                                out.write(i)
-                            out.close()
-
-                        except FileNotFoundError:
-                            pass
-
-                        if not data:
-                            data = 'База пуста'
-
-                        self.send_msg(event,event.user_id, 'Архив обновлён')
-            
+                        for i, j in self.cmds.items():
+                            if event.text.startswith(i):
+                                j(event)
             time.sleep(2)
 
         except Exception as e:
